@@ -1,0 +1,154 @@
+/* ============================================
+   CELF - Main Section Styles
+   메인 Canvas 섹션 및 프라임 세포
+   ============================================ */
+
+.main-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 0;
+    background: var(--bg-primary);
+    transition: opacity 0.5s ease-out;
+}
+
+#mainCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.prime-cell-container {
+    position: absolute;
+    bottom: 0vh;
+    left: 50%;
+    transform: translateX(-50%) scale(var(--prime-scale, 1));
+    width: min(32vw, 520px);
+    height: min(60vh, 720px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+    transition: transform 0.1s ease-out;
+}
+
+.prime-cell {
+    width: 80vh;
+    height: 80vh;
+    object-fit: cover;
+    display: block;
+    filter: drop-shadow(0 10px 30px var(--shadow-md));
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: auto;
+    cursor: pointer;
+    transform-origin: center bottom;
+
+}
+
+.prime-cell:hover {
+    transform: scale(1.05);
+}
+
+/* 히어로 섹션 설명 텍스트 */
+.prime-hero-info {
+    position: absolute;
+    top: 50%;
+    left: 2rem;
+    transform: translateY(-50%);
+    max-width: 480px;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 1s ease-out;
+}
+
+.prime-hero-info.fade-out {
+    opacity: 0;
+}
+
+.prime-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    text-shadow: 0 2px 25px rgba(0, 0, 0, 0.25);
+    margin: 0 0 1.5rem 0;
+}
+
+.prime-description {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 1.85;
+    text-shadow: 0 1px 15px rgba(0, 0, 0, 0.2);
+    margin: 0;
+}
+
+/* 큰 데스크탑 화면 (1920px 이상) */
+@media (min-width: 1920px) {
+    .prime-cell-container {
+        width: min(36vw, 600px);
+        height: min(65vh, 800px);
+    }
+    
+    .prime-cell {
+        width: 90vh;
+        height: 90vh;
+    }
+    
+    .prime-hero-info {
+        left: 2rem;
+        max-width: 550px;
+    }
+    
+    .prime-title {
+        font-size: 4.2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .prime-description {
+        font-size: 1.2rem;
+    }
+}
+
+/* 태블릿 및 작은 화면 */
+@media (max-width: 1024px) {
+    .prime-hero-info {
+        left: 2rem;
+        max-width: 400px;
+    }
+    
+    .prime-title {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .prime-description {
+        font-size: 1rem;
+    }
+}
+
+/* 모바일 */
+@media (max-width: 768px) {
+    .prime-hero-info {
+        left: 4%;
+        right: 4%;
+        max-width: 100%;
+    }
+    
+    .prime-title {
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .prime-description {
+        font-size: 0.9rem;
+    }
+}
+
