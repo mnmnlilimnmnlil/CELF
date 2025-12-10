@@ -21,6 +21,7 @@
     <section id="mainSection" class="main-section">
         <canvas id="mainCanvas"></canvas>
         <div class="prime-hero-info">
+            <div class="prime-badge">PRIME</div>
             <div class="cell-tags">
                 <span class="cell-tag">공감</span>
                 <span class="cell-tag">이해</span>
@@ -213,8 +214,16 @@
     </section>
 
     <!-- 오디오 파일 (숨김) -->
-    <audio id="audioSource" src="./assets/bgm/together.mp3" loop preload="auto"></audio>
-    <audio id="eatSound" src="./assets/audio/eat.mp3" preload="auto"></audio>
+    <audio id="audioSource" loop preload="auto" crossorigin="anonymous">
+        <source src="./assets/bgm/together.mp3" type="audio/mpeg">
+        <source src="./assets/bgm/together.ogg" type="audio/ogg">
+        <!-- 오디오 파일을 로드할 수 없는 경우를 위한 대체 메시지 -->
+        <p>오디오를 재생할 수 없습니다. 브라우저가 오디오 형식을 지원하지 않거나 파일이 없습니다.</p>
+    </audio>
+    <audio id="eatSound" preload="auto" crossorigin="anonymous">
+        <source src="./assets/audio/eat.mp3" type="audio/mpeg">
+        <source src="./assets/audio/eat.ogg" type="audio/ogg">
+    </audio>
 
     <!-- Matter.js 물리 엔진 -->
     <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>

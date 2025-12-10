@@ -163,6 +163,24 @@ export function initMainCanvas() {
             return;
         }
 
+        // 오디오 파일 로드 확인
+        audioElement.addEventListener('error', (e) => {
+            console.warn('오디오 파일 로드 실패:', e);
+            console.warn('오디오 파일 경로를 확인해주세요:', audioElement.src);
+        });
+
+        audioElement.addEventListener('canplaythrough', () => {
+            console.log('오디오 파일 로드 완료');
+        });
+
+        // 오디오 파일이 로드되지 않았을 경우를 대비한 재시도 로직
+        const checkAudioLoaded = () => {
+            if (audioElement.readyState >= 2) { // HAVE_CURRENT_DATA 이상
+                return true;
+            }
+            return false;
+        };
+
         try {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const analyser = audioContext.createAnalyser();
@@ -188,12 +206,51 @@ export function initMainCanvas() {
 
         const startAudio = () => {
             if (audioReady) return;
+            
+            // AudioContext가 suspended 상태일 수 있으므로 resume
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().catch(err => {
+                    console.warn('AudioContext resume 실패:', err);
+                });
+            }
+            
+            // 오디오 파일이 로드되었는지 확인
+            if (!checkAudioLoaded()) {
+                console.warn('오디오 파일이 아직 로드되지 않았습니다. 잠시 후 다시 시도합니다.');
+                // 오디오 로드 대기
+                const loadHandler = () => {
+                    audioElement.removeEventListener('canplaythrough', loadHandler);
+                    startAudio();
+                };
+                audioElement.addEventListener('canplaythrough', loadHandler);
+                
+                // 타임아웃 설정 (5초 후 포기)
+                setTimeout(() => {
+                    audioElement.removeEventListener('canplaythrough', loadHandler);
+                    if (!audioReady) {
+                        console.error('오디오 파일을 로드할 수 없습니다. 파일 경로와 파일 존재 여부를 확인해주세요.');
+                        console.error('현재 오디오 소스:', audioElement.src);
+                        console.error('오디오 readyState:', audioElement.readyState);
+                    }
+                }, 5000);
+                return;
+            }
+
             audioElement.play()
                 .then(() => {
                     audioReady = true;
+                    console.log('오디오 재생 시작');
                 })
                 .catch(err => {
                     console.warn('오디오 재생 실패:', err);
+                    console.warn('오디오 파일 경로:', audioElement.src);
+                    console.warn('오디오 readyState:', audioElement.readyState);
+                    // 사용자에게 알림 (선택사항)
+                    if (err.name === 'NotAllowedError') {
+                        console.warn('브라우저가 오디오 재생을 허용하지 않았습니다. 페이지를 클릭/터치해주세요.');
+                    } else if (err.name === 'NotSupportedError') {
+                        console.error('오디오 형식이 지원되지 않습니다. 다른 형식의 오디오 파일을 사용해주세요.');
+                    }
                 });
         };
 
