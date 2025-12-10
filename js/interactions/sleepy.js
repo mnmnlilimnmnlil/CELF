@@ -89,8 +89,8 @@ export function initSleepy() {
         let imageName;
         
         if (state.isAwake) {
-            // 깨어난 상태: 화이트/블랙 동일하게 culcul04
-            imageName = 'culcul04';
+            // 깨어난 상태: 화이트 culcul04, 블랙 culcul03
+            imageName = theme === 'dark' ? 'culcul03' : 'culcul04';
         } else {
             // 잠든 상태: 화이트 culcul01, 블랙 culcul02
             imageName = theme === 'dark' ? 'culcul02' : 'culcul01';
