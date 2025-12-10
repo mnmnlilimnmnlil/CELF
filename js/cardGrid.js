@@ -10,13 +10,13 @@
 const cellCards = [
     { id: "hungry", title: "출출 세포", sectionId: "section02", imageLight: "hungrywhite01", imageDark: "hungry01" },
     { id: "curious", title: "호기심 세포", sectionId: "section03", imageLight: "hogiwhite01", imageDark: "hogiblack01" },
-    { id: "love", title: "사랑 세포", sectionId: "section04", imageLight: "love", imageDark: "love01" },
-    { id: "sleepy", title: "쿨쿨 세포", sectionId: "section05", imageLight: "sleepy", imageDark: "sleepy01" },
+    { id: "love", title: "사랑 세포", sectionId: "section04", imageLight: "lovecard02", imageDark: "lovecard01" },
+    { id: "sleepy", title: "쿨쿨 세포", sectionId: "section05", imageLight: "culculcard02", imageDark: "culculcard01" },
     { id: "prime", title: "공감 세포", sectionId: null, image: "main", isCenter: true }, // 정중앙
-    { id: "anxiety", title: "불안 세포", sectionId: "section06", imageLight: "anxiety", imageDark: "anxiety01" },
-    { id: "attention", title: "관종 세포", sectionId: "section07", imageLight: "attention", imageDark: "attention01" },
-    { id: "dream", title: "상상 세포", sectionId: "section08", imageLight: "dream", imageDark: "dream01" },
-    { id: "fashion", title: "패션 세포", sectionId: "section09", imageLight: "fashion", imageDark: "fashion01" }
+    { id: "anxiety", title: "불안 세포", sectionId: "section06", imageLight: "anxietycard02", imageDark: "anxietycard01" },
+    { id: "attention", title: "관종 세포", sectionId: "section07", imageLight: "attentioncard02", imageDark: "attentioncard01" },
+    { id: "dream", title: "상상 세포", sectionId: "section08", imageLight: "dreamcard02", imageDark: "dreamcard01" },
+    { id: "fashion", title: "패션 세포", sectionId: "section09", imageLight: "fashioncard02", imageDark: "fashioncard01" }
 ];
 
 // 각 카드별 requestAnimationFrame ID 저장
@@ -32,6 +32,7 @@ function getThemeMode() {
 /**
  * 3D Tilt 효과 및 오버레이 효과 적용
  */
+// AI 활용: 3D Tilt 효과, requestAnimationFrame을 이용한 부드러운 애니메이션, 마우스 위치 기반 각도 계산
 function applyTiltEffect(card, overlay, event) {
     // 이전 요청 취소
     const prevRafId = cardRafIds.get(card);
@@ -39,7 +40,7 @@ function applyTiltEffect(card, overlay, event) {
         cancelAnimationFrame(prevRafId);
     }
     
-    // requestAnimationFrame으로 부드러운 업데이트
+    // AI 활용: requestAnimationFrame으로 부드러운 업데이트
     const rafId = requestAnimationFrame(() => {
         const rect = card.getBoundingClientRect();
         const x = event.offsetX !== undefined ? event.offsetX : (event.clientX - rect.left);
@@ -50,34 +51,34 @@ function applyTiltEffect(card, overlay, event) {
         const scaleX = 220 / rect.width;  // 220/380 ≈ 0.579
         const scaleY = 310 / rect.height; // 310/530 ≈ 0.585
         
-        // 정규화된 좌표로 회전 계산 (반응 강도 줄임)
+        // AI 활용: 정규화된 좌표로 회전 계산 (반응 강도 줄임)
         const normalizedX = x * scaleX;
         const normalizedY = y * scaleY;
         
-        // 회전 각도를 절반으로 줄임 (빛 효과는 그대로 유지)
+        // AI 활용: 회전 각도를 절반으로 줄임 (빛 효과는 그대로 유지)
         const rotateY = -1/10 * normalizedX + 10;
         const rotateX = 2/30 * normalizedY - 10;
         
-        // 오버레이 효과 - 마우스 위치에 따라 빛 이동 (반사 효과)
+        // AI 활용: 오버레이 효과 - 마우스 위치에 따라 빛 이동 (반사 효과)
         // 카드가 기울어지는 방향과 반대로 빛이 이동하도록
         // 마우스가 오른쪽에 있으면 카드는 왼쪽으로 기울어지고, 빛은 왼쪽에서 반사됨
         const reverseX = rect.width - x;
         const reverseY = rect.height - y;
         
-        // 빛의 위치를 더 자연스럽게 계산
+        // AI 활용: 빛의 위치를 더 자연스럽게 계산
         // 카드 중심을 기준으로 마우스 위치에 따라 빛이 이동
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
         const offsetX = (reverseX - centerX) / centerX; // -1 ~ 1
         const offsetY = (reverseY - centerY) / centerY; // -1 ~ 1
         
-        // 빛의 위치를 퍼센트로 계산 (중앙 50% 기준으로 이동)
+        // AI 활용: 빛의 위치를 퍼센트로 계산 (중앙 50% 기준으로 이동)
         const lightX = 50 + offsetX * 30; // 20% ~ 80%
         const lightY = 50 + offsetY * 30; // 20% ~ 80%
         
         // 테마에 따라 오버레이 효과 조정
         const theme = getThemeMode();
-        // 마우스 위치에 따라 opacity 계산 (중앙에서 멀수록 더 밝게)
+        // AI 활용: 마우스 위치에 따라 opacity 계산 (중앙에서 멀수록 더 밝게)
         const distanceFromCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
         const maxDistance = Math.sqrt(Math.pow(centerX, 2) + Math.pow(centerY, 2));
         const opacity = Math.min(0.85, 0.3 + (distanceFromCenter / maxDistance) * 0.55);

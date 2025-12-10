@@ -2,6 +2,7 @@
  * CELF - Anxiety Cell Interaction
  * Section 06: 불안 세포 인터랙션
  * 마우스를 천천히 움직여서 안정화시키기
+ * (AI 활용: 복잡한 상태 관리, IntersectionObserver, 마우스 속도 계산, 동적 메시지 생성)
  */
 
 // 설정 상수
@@ -14,6 +15,39 @@ const CONFIG = {
     MIN_ANXIETY: 0,                // 최소 불안도
     CALM_THRESHOLD: 20,            // 안정화 기준 (불안도가 이 이하로 내려가면)
 };
+
+/**
+ * 현재 테마 모드 가져오기
+ */
+function getThemeMode() {
+    return document.documentElement.getAttribute('data-theme') || 'light';
+}
+
+/**
+ * 캐릭터 이미지 업데이트 (테마에 따라)
+ * AI 활용: MutationObserver를 사용한 테마 변경 감지, 이미지 preloading으로 깜빡임 방지
+ */
+function updateCharacterImage() {
+    const character = document.getElementById('anxietyCharacter');
+    if (!character) return;
+    
+    const theme = getThemeMode();
+    // 화이트 모드: anxiety03, 블랙 모드: anxiety04
+    const imageName = theme === 'dark' ? 'anxiety04' : 'anxiety03';
+    const newSrc = `./assets/character/${imageName}.png`;
+    
+    // 이미지가 변경되지 않으면 업데이트하지 않음 (깜빡임 방지)
+    if (character.src && character.src.includes(imageName)) {
+        return;
+    }
+    
+    // AI 활용: 이미지 preloading으로 깜빡임 방지
+    const img = new Image();
+    img.onload = () => {
+        character.src = img.src;
+    };
+    img.src = newSrc;
+}
 
 /**
  * 불안 세포 인터랙션 초기화
@@ -73,7 +107,8 @@ export function initAnxiety() {
         isCalm: false,             // 안정화 상태
         updateInterval: null,
         gaugeElement: null,
-        hintElement: null,
+        hintElement: null,            // 안내 메시지 요소
+        descriptionHintElement: null, // 설명 메시지 요소
         messageElements: [],       // 불안 메시지 요소들 (배열)
         messageContainer: null,    // 메시지 컨테이너
         lastMessageTime: 0,        // 마지막 메시지 변경 시간
@@ -120,6 +155,15 @@ export function initAnxiety() {
         hint.textContent = '마우스를 천천히 부드럽게 움직여주세요';
         section.appendChild(hint);
         state.hintElement = hint;
+        
+        // 설명 메시지 (안정화 상태일 때 표시)
+        const descriptionHint = document.createElement('div');
+        descriptionHint.className = 'anxiety-description-hint';
+        descriptionHint.id = 'anxietyDescriptionHint';
+        descriptionHint.textContent = '현재 안정한 상태입니다. 마우스를 흔들면 불안해합니다.';
+        descriptionHint.style.display = 'none'; // 초기에는 숨김
+        section.appendChild(descriptionHint);
+        state.descriptionHintElement = descriptionHint;
         
         // 불안 메시지 컨테이너 (캐릭터 컨테이너 안에)
         const characterContainer = section.querySelector('.cell-character-container');
@@ -341,10 +385,14 @@ export function initAnxiety() {
             state.redOverlay.style.background = 'rgba(244, 67, 54, 0)';
         }
         
-        // 안내 메시지 변경
+        // 안내 메시지 숨김
         if (state.hintElement) {
-            state.hintElement.textContent = '안정화되었습니다!';
-            state.hintElement.style.color = '#4CAF50';
+            state.hintElement.style.display = 'none';
+        }
+        
+        // 설명 메시지 표시
+        if (state.descriptionHintElement) {
+            state.descriptionHintElement.style.display = 'block';
         }
         
         // 불안 메시지 숨기기
@@ -364,6 +412,12 @@ export function initAnxiety() {
         if (state.hintElement) {
             state.hintElement.textContent = '마우스를 천천히 부드럽게 움직여주세요';
             state.hintElement.style.color = '';
+            state.hintElement.style.display = 'block';
+        }
+        
+        // 설명 메시지 숨김
+        if (state.descriptionHintElement) {
+            state.descriptionHintElement.style.display = 'none';
         }
         
         // 불안 메시지 다시 표시
@@ -581,6 +635,20 @@ export function initAnxiety() {
     
     // 초기 게이지 업데이트
     updateGauge();
+    
+    // 초기 이미지 설정
+    updateCharacterImage();
+    
+    // AI 활용: 테마 변경 감지 (MutationObserver)
+    const html = document.documentElement;
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                updateCharacterImage();
+            }
+        });
+    });
+    themeObserver.observe(html, { attributes: true, attributeFilter: ['data-theme'] });
     
     console.log('불안 세포 인터랙션 초기화 완료 (마우스 속도 기반 안정화)');
 }

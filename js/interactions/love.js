@@ -2,7 +2,41 @@
  * CELF - Love Cell Interaction
  * Section 05: 사랑 세포 인터랙션
  * Matter.js를 사용한 물리 기반 하트 쌓기
+ * (AI 활용: Matter.js 물리 엔진, requestAnimationFrame, 물리 시뮬레이션)
  */
+
+/**
+ * 현재 테마 모드 가져오기
+ */
+function getThemeMode() {
+    return document.documentElement.getAttribute('data-theme') || 'light';
+}
+
+/**
+ * 캐릭터 이미지 업데이트 (테마에 따라)
+ * AI 활용: MutationObserver를 사용한 테마 변경 감지, 이미지 preloading으로 깜빡임 방지
+ */
+function updateCharacterImage() {
+    const character = document.getElementById('loveCharacter');
+    if (!character) return;
+    
+    const theme = getThemeMode();
+    // 화이트 모드: love03, 블랙 모드: love04
+    const imageName = theme === 'dark' ? 'love04' : 'love03';
+    const newSrc = `./assets/character/${imageName}.png`;
+    
+    // 이미지가 변경되지 않으면 업데이트하지 않음 (깜빡임 방지)
+    if (character.src && character.src.includes(imageName)) {
+        return;
+    }
+    
+    // AI 활용: 이미지 preloading으로 깜빡임 방지
+    const img = new Image();
+    img.onload = () => {
+        character.src = img.src;
+    };
+    img.src = newSrc;
+}
 
 /**
  * 사랑 세포 인터랙션 초기화
@@ -82,9 +116,9 @@ export function initLove() {
     let growingHeart = null;
     let loveCount = 0;
     const MIN_LOVE_COUNT = 5;
-    const MAX_HEART_SIZE = 500;
-    const INITIAL_HEART_SIZE = 100;
-    const SIZE_INCREMENT = 20;
+    const MAX_HEART_SIZE = 800;
+    const INITIAL_HEART_SIZE = 180;
+    const SIZE_INCREMENT = 35;
     
     /**
      * 하트 SVG 생성
@@ -165,7 +199,7 @@ export function initLove() {
      * 하트 떨어뜨리기 (터질 때)
      */
     function createFallingHearts(centerX) {
-        const count = Math.floor(Math.random() * 11) + 15; // 15~25개
+        const count = Math.floor(Math.random() * 21) + 30; // 30~50개
         
         // 여러 프레임에 걸쳐 분산 생성
         let created = 0;
@@ -204,10 +238,12 @@ export function initLove() {
                 const inputValue = event.target.value.trim();
                 
                 if (inputValue.includes('사랑')) {
+                    // AI 활용: container 기준으로 캐릭터 중앙 위치 계산 (오른쪽으로 오프셋 추가)
                     const containerRect = container.getBoundingClientRect();
                     const characterRect = character.getBoundingClientRect();
-                    const centerX = characterRect.left + characterRect.width / 2 - containerRect.left;
-                    const centerY = characterRect.top + characterRect.height / 2 - containerRect.top;
+                    // 캐릭터 이미지의 실제 중앙 + 오른쪽 오프셋
+                    const centerX = (characterRect.left + characterRect.width / 2 - containerRect.left) + 0;
+                    const centerY = (characterRect.top + characterRect.height / 2 - containerRect.top) + 100;
                     
                     loveCount++;
                     
@@ -304,6 +340,20 @@ export function initLove() {
     }
     
     window.addEventListener('resize', handleResize);
+    
+    // 초기 이미지 설정
+    updateCharacterImage();
+    
+    // AI 활용: 테마 변경 감지 (MutationObserver)
+    const html = document.documentElement;
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                updateCharacterImage();
+            }
+        });
+    });
+    observer.observe(html, { attributes: true, attributeFilter: ['data-theme'] });
     
     console.log('사랑 세포 인터랙션 초기화 완료 (Matter.js)');
 }

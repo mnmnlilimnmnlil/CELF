@@ -1,6 +1,7 @@
 /**
  * CELF - Main Canvas
  * 메인 Canvas 파티클 + 오디오 반응형 + 텍스트 파동 구현
+ * (AI 활용: Canvas API, Web Audio API, 파티클 시스템, 애니메이션 루프)
  */
 
 const PARTICLE_COLORS = ['#ffffff', '#ff4545', '#050505'];
@@ -10,6 +11,7 @@ function getThemeMode() {
     return document.documentElement.getAttribute('data-theme') || 'light';
 }
 
+// 파티클 클래스 (AI 활용: Canvas API, 오디오 반응형 파티클 시스템)
 class Particle {
     constructor(canvas, audioData) {
         this.canvas = canvas;
@@ -30,6 +32,7 @@ class Particle {
         this.multiplier = Math.random() * 0.9 + 0.4;
     }
 
+    // AI 활용: 오디오 레벨에 따른 파티클 크기 및 투명도 변화, 삼각함수를 이용한 부드러운 움직임
     update() {
         const level = this.audioData?.average || 0;
         this.x += this.velocityX + Math.sin(this.wobbleSeed + performance.now() * 0.0003) * 0.05;
@@ -42,6 +45,7 @@ class Particle {
         this.currentOpacity = Math.min(0.65, this.opacity + level * 0.5);
     }
 
+    // AI 활용: Canvas API를 이용한 파티클 그리기
     draw(ctx) {
         ctx.save();
         ctx.globalAlpha = this.currentOpacity || this.opacity;
@@ -96,6 +100,7 @@ class Ripple {
     }
 }
 
+// 파동 클래스 (AI 활용: 여러 리플을 조합한 파동 효과, 순차적 애니메이션)
 class Wave {
     constructor(x, y, canvas) {
         this.ripples = [];
@@ -115,6 +120,7 @@ class Wave {
         }
     }
 
+    // AI 활용: 리플 배열 필터링 및 업데이트
     update(audioBoost) {
         this.ripples = this.ripples.filter(ripple => ripple.update(audioBoost));
         return this.ripples.length > 0;
@@ -163,7 +169,7 @@ export function initMainCanvas() {
             return;
         }
 
-        // 오디오 파일 로드 확인
+        // 오디오 파일 로드 확인 (AI 활용)
         audioElement.addEventListener('error', (e) => {
             console.warn('오디오 파일 로드 실패:', e);
             console.warn('오디오 파일 경로를 확인해주세요:', audioElement.src);
@@ -173,7 +179,7 @@ export function initMainCanvas() {
             console.log('오디오 파일 로드 완료');
         });
 
-        // 오디오 파일이 로드되지 않았을 경우를 대비한 재시도 로직
+        // 오디오 파일이 로드되지 않았을 경우를 대비한 재시도 로직 (AI 활용)
         const checkAudioLoaded = () => {
             if (audioElement.readyState >= 2) { // HAVE_CURRENT_DATA 이상
                 return true;
@@ -204,27 +210,28 @@ export function initMainCanvas() {
                 audioData.dataArray = dataArray;
             }
 
+        // 오디오 재생 시작 함수 (AI 활용 - 오디오 체크 및 재시도 로직)
         const startAudio = () => {
             if (audioReady) return;
             
-            // AudioContext가 suspended 상태일 수 있으므로 resume
+            // AudioContext가 suspended 상태일 수 있으므로 resume (AI 활용)
             if (audioContext.state === 'suspended') {
                 audioContext.resume().catch(err => {
                     console.warn('AudioContext resume 실패:', err);
                 });
             }
             
-            // 오디오 파일이 로드되었는지 확인
+            // 오디오 파일이 로드되었는지 확인 (AI 활용)
             if (!checkAudioLoaded()) {
                 console.warn('오디오 파일이 아직 로드되지 않았습니다. 잠시 후 다시 시도합니다.');
-                // 오디오 로드 대기
+                // 오디오 로드 대기 (AI 활용)
                 const loadHandler = () => {
                     audioElement.removeEventListener('canplaythrough', loadHandler);
                     startAudio();
                 };
                 audioElement.addEventListener('canplaythrough', loadHandler);
                 
-                // 타임아웃 설정 (5초 후 포기)
+                // 타임아웃 설정 (5초 후 포기) (AI 활용)
                 setTimeout(() => {
                     audioElement.removeEventListener('canplaythrough', loadHandler);
                     if (!audioReady) {
@@ -245,7 +252,7 @@ export function initMainCanvas() {
                     console.warn('오디오 재생 실패:', err);
                     console.warn('오디오 파일 경로:', audioElement.src);
                     console.warn('오디오 readyState:', audioElement.readyState);
-                    // 사용자에게 알림 (선택사항)
+                    // 사용자에게 알림 (선택사항) (AI 활용)
                     if (err.name === 'NotAllowedError') {
                         console.warn('브라우저가 오디오 재생을 허용하지 않았습니다. 페이지를 클릭/터치해주세요.');
                     } else if (err.name === 'NotSupportedError') {
@@ -274,6 +281,60 @@ export function initMainCanvas() {
         if (now - lastWaveTime < waveCooldown) return;
         lastWaveTime = now;
         waves.push(new Wave(x, y, canvas));
+    }
+
+    /**
+     * 초기 파동 배치 (예쁘게 배치)
+     */
+    function initWaves() {
+        // 화면에 균등하게 배치할 파동 개수
+        const waveCount = 6; // 5개에서 6개로 증가
+        
+        // 화면을 그리드로 나누어 배치
+        const cols = 3;
+        const rows = 2;
+        const paddingX = canvas.width * 0.15;
+        const paddingY = canvas.height * 0.15;
+        const cellWidth = (canvas.width - paddingX * 2) / (cols - 1);
+        const cellHeight = (canvas.height - paddingY * 2) / (rows - 1);
+        
+        // 각 위치에 약간의 랜덤 오프셋을 주어 자연스럽게 배치
+        for (let i = 0; i < waveCount; i++) {
+            let x, y;
+            
+            if (i < cols * rows) {
+                // 그리드 기반 배치
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                x = paddingX + col * cellWidth + (Math.random() - 0.5) * cellWidth * 0.3;
+                y = paddingY + row * cellHeight + (Math.random() - 0.5) * cellHeight * 0.3;
+            } else {
+                // 6번째 파동은 오른쪽 밑에 배치
+                if (i === 5) {
+                    x = canvas.width - paddingX - (Math.random() * canvas.width * 0.1);
+                    y = canvas.height - paddingY - (Math.random() * canvas.height * 0.1);
+                } else {
+                    // 나머지는 랜덤 배치
+                    x = paddingX + Math.random() * (canvas.width - paddingX * 2);
+                    y = paddingY + Math.random() * (canvas.height - paddingY * 2);
+                }
+            }
+            
+            // 경계 체크
+            x = Math.max(paddingX, Math.min(canvas.width - paddingX, x));
+            y = Math.max(paddingY, Math.min(canvas.height - paddingY, y));
+            
+            // 각 파동을 약간씩 다른 시간에 시작하도록 delay 추가
+            const delayFrames = i * 20; // 각 파동마다 약간씩 지연
+            const wave = new Wave(x, y, canvas);
+            // Wave 클래스에 delay를 적용하기 위해 ripples의 delayFrames 조정
+            if (delayFrames > 0) {
+                wave.ripples.forEach((ripple, idx) => {
+                    ripple.delayFrames += delayFrames;
+                });
+            }
+            waves.push(wave);
+        }
     }
 
     // 텍스트 페이드아웃 함수
@@ -315,7 +376,7 @@ export function initMainCanvas() {
         ctx.textAlign = 'center';
         ctx.fillStyle = callout;
         ctx.font = '600 16px "Pretendard", sans-serif';
-        ctx.fillText('터치해서 사운드를 켜주세요', canvas.width / 2, canvas.height * 0.12);
+        ctx.fillText('화면을 터치해보세요 !', canvas.width / 2, canvas.height * 0.12);
         ctx.restore();
     }
 
@@ -350,6 +411,7 @@ export function initMainCanvas() {
 
     resizeCanvas();
     initAudioAnalysis();
+    initWaves(); // 초기 파동 배치
     animate();
 
     window.addEventListener('resize', () => {

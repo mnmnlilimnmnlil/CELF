@@ -2,7 +2,41 @@
  * CELF - Dream Cell Interaction
  * Section 08: 상상 세포 인터랙션
  * Canvas 기반 그림 그리기 및 배경 변경 기능
+ * (AI 활용: Canvas API, FileReader API, Undo/Redo 시스템, 이미지 처리)
  */
+
+/**
+ * 현재 테마 모드 가져오기
+ */
+function getThemeMode() {
+    return document.documentElement.getAttribute('data-theme') || 'light';
+}
+
+/**
+ * 캐릭터 이미지 업데이트 (테마에 따라)
+ * AI 활용: MutationObserver를 사용한 테마 변경 감지, 이미지 preloading으로 깜빡임 방지
+ */
+function updateCharacterImage() {
+    const character = document.getElementById('dreamCharacter');
+    if (!character) return;
+    
+    const theme = getThemeMode();
+    // 화이트 모드: dream03, 블랙 모드: dream04
+    const imageName = theme === 'dark' ? 'dream04' : 'dream03';
+    const newSrc = `./assets/character/${imageName}.png`;
+    
+    // 이미지가 변경되지 않으면 업데이트하지 않음 (깜빡임 방지)
+    if (character.src && character.src.includes(imageName)) {
+        return;
+    }
+    
+    // AI 활용: 이미지 preloading으로 깜빡임 방지
+    const img = new Image();
+    img.onload = () => {
+        character.src = img.src;
+    };
+    img.src = newSrc;
+}
 
 export function initDream() {
     const section = document.getElementById('section08');
@@ -409,7 +443,7 @@ export function initDream() {
     controlsWrapper.appendChild(toggleBtn);
     controlsWrapper.appendChild(controls);
 
-    // Canvas 그리기 함수들
+    // AI 활용: Canvas 그리기 함수들 (Canvas API, 마우스/터치 이벤트 처리)
     function startDrawing(e) {
         isDrawing = true;
         const rect = canvas.getBoundingClientRect();
@@ -420,6 +454,7 @@ export function initDream() {
         saveHistory();
     }
 
+    // AI 활용: Canvas API를 이용한 선 그리기 (beginPath, moveTo, lineTo, stroke)
     function draw(e) {
         if (!isDrawing) return;
         
@@ -448,7 +483,7 @@ export function initDream() {
         isDrawing = false;
     }
 
-    // 터치 이벤트 지원
+    // AI 활용: 터치 이벤트 지원 (터치 좌표 계산)
     function getTouchPos(e) {
         const rect = canvas.getBoundingClientRect();
         return {
@@ -457,6 +492,7 @@ export function initDream() {
         };
     }
 
+    // AI 활용: 터치 시작 이벤트 처리
     function startDrawingTouch(e) {
         e.preventDefault();
         isDrawing = true;
@@ -468,6 +504,7 @@ export function initDream() {
         saveHistory();
     }
 
+    // AI 활용: 터치 이동 이벤트 처리 및 Canvas 그리기
     function drawTouch(e) {
         if (!isDrawing) return;
         e.preventDefault();
@@ -541,9 +578,19 @@ export function initDream() {
         toggleBtn.style.background = isDark ? 'rgba(0, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.95)';
     };
     
-    const themeObserver = new MutationObserver(updateTheme);
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                updateTheme();
+                updateCharacterImage();
+            }
+        });
+    });
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     updateTheme();
+    
+    // 초기 이미지 설정
+    updateCharacterImage();
     
     console.log('상상 세포 인터랙션 초기화 완료');
 }

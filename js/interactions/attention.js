@@ -4,6 +4,49 @@
  * 간단한 두더지잡기 스타일
  */
 
+/**
+ * 현재 테마 모드 가져오기
+ */
+function getThemeMode() {
+    return document.documentElement.getAttribute('data-theme') || 'light';
+}
+
+/**
+ * 캐릭터 이미지 업데이트 (테마에 따라)
+ * AI 활용: MutationObserver를 사용한 테마 변경 감지, 이미지 preloading으로 깜빡임 방지
+ */
+function updateCharacterImage() {
+    const character = document.getElementById('attentionCharacter');
+    if (!character) return;
+    
+    const theme = getThemeMode();
+    // 화이트 모드: attention03, 블랙 모드: attention04
+    const imageName = theme === 'dark' ? 'attention04' : 'attention03';
+    const newSrc = `./assets/character/${imageName}.png`;
+    
+    // 이미지가 변경되지 않으면 업데이트하지 않음 (깜빡임 방지)
+    if (character.src && character.src.includes(imageName)) {
+        return;
+    }
+    
+    // AI 활용: 이미지 preloading으로 깜빡임 방지
+    const img = new Image();
+    img.onload = () => {
+        character.src = img.src;
+    };
+    img.src = newSrc;
+}
+
+/**
+ * 슬롯 이미지 경로 가져오기 (테마에 따라)
+ */
+function getSlotImagePath() {
+    const theme = getThemeMode();
+    // 화이트 모드: attentioncard01, 블랙 모드: attentioncard02
+    const imageName = theme === 'dark' ? 'attentioncard02' : 'attentioncard01';
+    return `./assets/character/${imageName}.png`;
+}
+
 const CONFIG = {
     POP_DURATION: 800,     // 팝업 애니메이션 시간 (더 느리게)
     HIDE_DURATION: 400,    // 사라지는 애니메이션 시간
@@ -147,18 +190,21 @@ export function initAttention() {
         imageBox.style.top = '0';
         imageBox.style.width = `${CONFIG.BOX_SIZE}px`;
         imageBox.style.height = `${CONFIG.BOX_SIZE}px`;
-        imageBox.style.overflow = 'hidden';
+        imageBox.style.overflow = 'visible';
         imageBox.style.borderRadius = '14px';
         imageBox.style.transformOrigin = 'center center';
         
-        const img = character.cloneNode(true);
-        img.id = '';
+        // 슬롯 이미지는 카드 이미지 사용
+        const img = document.createElement('img');
+        img.src = getSlotImagePath();
+        img.alt = '관종 세포';
         img.style.position = 'absolute';
-        img.style.left = '0';
-        img.style.top = '0';
-        img.style.width = '100%';
-        img.style.height = '100%';
-        img.style.objectFit = 'cover';
+        img.style.left = '50%';
+        img.style.top = '50%';
+        img.style.transform = 'translate(-50%, -50%)';
+        img.style.width = '160%';
+        img.style.height = '160%';
+        img.style.objectFit = 'contain';
         img.style.pointerEvents = 'auto';
         img.style.cursor = 'pointer';
         imageBox.appendChild(img);
@@ -401,6 +447,40 @@ export function initAttention() {
     setTimeout(() => {
         showRandomSlot();
     }, 100);
+    
+    // 슬롯 이미지 업데이트 함수
+    function updateSlotImages() {
+        const newImagePath = getSlotImagePath();
+        slots.forEach(slot => {
+            if (slot.img) {
+                // 이미지가 변경되지 않으면 업데이트하지 않음 (깜빡임 방지)
+                if (slot.img.src && slot.img.src.includes(newImagePath.split('/').pop())) {
+                    return;
+                }
+                // AI 활용: 이미지 preloading으로 깜빡임 방지
+                const img = new Image();
+                img.onload = () => {
+                    slot.img.src = img.src;
+                };
+                img.src = newImagePath;
+            }
+        });
+    }
+    
+    // 초기 이미지 설정
+    updateCharacterImage();
+    
+    // AI 활용: 테마 변경 감지 (MutationObserver)
+    const html = document.documentElement;
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                updateCharacterImage();
+                updateSlotImages();
+            }
+        });
+    });
+    themeObserver.observe(html, { attributes: true, attributeFilter: ['data-theme'] });
     
     console.log('관종 세포 인터랙션 초기화 완료');
 }

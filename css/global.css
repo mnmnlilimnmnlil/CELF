@@ -385,3 +385,28 @@ img{
     }
 }
 
+/* ============================================
+   푸터
+   ============================================ */
+
+.footer {
+    width: 100%;
+    padding: 3rem 2rem;
+    background-color: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 400;
+    transition: color 0.3s ease;
+}
+

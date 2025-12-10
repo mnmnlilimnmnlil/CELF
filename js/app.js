@@ -43,6 +43,7 @@ function initScrollAnimations() {
         rootMargin: '0px'
     };
     
+    // AI 활용: IntersectionObserver를 이용한 스크롤 애니메이션
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {

@@ -73,6 +73,50 @@ export function initSleepy() {
     };
     
     /**
+     * 현재 테마 모드 가져오기
+     */
+    function getThemeMode() {
+        return document.documentElement.getAttribute('data-theme') || 'light';
+    }
+    
+    /**
+     * 캐릭터 이미지 업데이트 (상태와 테마에 따라)
+     */
+    function updateCharacterImage() {
+        if (!character) return;
+        
+        const theme = getThemeMode();
+        let imageName;
+        
+        if (state.isAwake) {
+            // 깨어난 상태: 화이트/블랙 동일하게 culcul04
+            imageName = 'culcul04';
+        } else {
+            // 잠든 상태: 화이트 culcul01, 블랙 culcul02
+            imageName = theme === 'dark' ? 'culcul02' : 'culcul01';
+        }
+        
+        const newSrc = `./assets/character/${imageName}.png`;
+        
+        // 이미지가 이미 같은 것이면 변경하지 않음 (깜빡임 방지)
+        const currentSrc = character.src.split('/').pop();
+        if (currentSrc === `${imageName}.png`) {
+            return;
+        }
+        
+        // 이미지 preload 후 변경 (깜빡임 방지)
+        const img = new Image();
+        img.onload = () => {
+            character.src = newSrc;
+        };
+        img.onerror = () => {
+            // 로드 실패 시에도 원본 src로 변경 (깜빡임 방지)
+            character.src = newSrc;
+        };
+        img.src = newSrc;
+    }
+    
+    /**
      * Zzz 요소 생성 (천천히 나타남)
      */
     function createZzz() {
@@ -239,11 +283,6 @@ export function initSleepy() {
             eyeCoverBottom.style.height = `${state.eyeCloseProgress}%`;
         }
         
-        // 배경 어둡게 (눈이 감을수록 어두워짐)
-        if (overlay) {
-            const darkness = state.eyeCloseProgress / 100;
-            overlay.style.background = `rgba(0, 0, 0, ${darkness * 0.6})`;
-        }
         
         // 힌트 메시지 표시 (눈이 30% 이상 감기면 나타남, 깨어나면 숨김)
         if (hintElement) {
@@ -355,6 +394,14 @@ export function initSleepy() {
         character.classList.remove(CONFIG.CLASS_SLEEP);
         character.classList.add(CONFIG.CLASS_AWAKE);
         
+        // 섹션 blur 제거
+        if (section) {
+            section.classList.remove('is-sleeping');
+        }
+        
+        // 이미지 업데이트 (깨어난 상태)
+        updateCharacterImage();
+        
         // 힌트 메시지 숨기기
         if (hintElement) {
             hintElement.style.opacity = '0';
@@ -384,6 +431,9 @@ export function initSleepy() {
         // 클래스 토글
         character.classList.remove(CONFIG.CLASS_AWAKE);
         character.classList.add(CONFIG.CLASS_SLEEP);
+        
+        // 이미지 업데이트 (잠든 상태)
+        updateCharacterImage();
         
         console.log('쿨쿨 세포가 다시 잠들었습니다.');
     }
@@ -427,6 +477,18 @@ export function initSleepy() {
         // 초기 눈 상태: 약간 감김 (20%)
         state.eyeCloseProgress = 20;
         updateEyeCover();
+        
+        // 초기 이미지 설정 (잠든 상태)
+        updateCharacterImage();
+        
+        // 테마 변경 감지하여 이미지 업데이트
+        const themeObserver = new MutationObserver(() => {
+            updateCharacterImage();
+        });
+        themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
         
         // 이벤트 리스너 등록
         // 스페이스바만 작동
